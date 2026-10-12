@@ -7,6 +7,7 @@ import 'package:alacena/pages/tiendas_page.dart';
 import 'package:alacena/screens/add_producto_screen.dart';
 import 'package:alacena/screens/detalle_producto_screen.dart';
 import 'package:alacena/screens/productos_screen.dart';
+import 'package:alacena/screens/add_compra_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -51,11 +52,12 @@ class _AlacenaAppState extends State<AlacenaApp> {
           themeMode: value == 0 ? ThemeMode.dark : ThemeMode.light,
           home: const InicioPage(),
           routes: {
-            '/producto': (context) => const DetalleProductoScreen(),
-            '/producto/form': (context) => const AddProductoScreen(),
-            '/categorias': (context) => const CategoriasPage(),
-            '/tiendas': (context) => const TiendasPage(),
-          },
+  '/producto': (context) => const DetalleProductoScreen(),
+  '/producto/form': (context) => const AddProductoScreen(),
+  '/compra': (context) => const AddCompraScreen(),
+  '/categorias': (context) => const CategoriasPage(),
+  '/tiendas': (context) => const TiendasPage(),
+},
           // Rutas que todavía no existen (carrito, compra, calendario...)
           onUnknownRoute: (settings) => MaterialPageRoute(
             settings: settings,
