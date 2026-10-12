@@ -4,15 +4,17 @@ import 'package:alacena/components/theme_app.dart';
 import 'package:alacena/database/alacena_db.dart';
 import 'package:alacena/pages/categorias_page.dart';
 import 'package:alacena/pages/tiendas_page.dart';
-import 'package:alacena/screens/add_producto_screen.dart';
-import 'package:alacena/screens/detalle_producto_screen.dart';
-import 'package:alacena/screens/productos_screen.dart';
 import 'package:alacena/screens/add_compra_screen.dart';
+import 'package:alacena/screens/add_producto_screen.dart';
+import 'package:alacena/screens/carrito_screen.dart';
+import 'package:alacena/screens/detalle_producto_screen.dart';
+import 'package:alacena/screens/home_screen.dart';
+import 'package:alacena/screens/productos_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-// main.dart PROVISIONAL: se reemplaza por el definitivo cuando
-// esté lista la pantalla principal.
+// main.dart PROVISIONAL: faltan las rutas de calendario, caducan hoy y
+// gastos. Mientras, esas opciones del menú abren "En construcción".
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es_MX');
@@ -50,70 +52,24 @@ class _AlacenaAppState extends State<AlacenaApp> {
           theme: ThemeApp.claro(),
           darkTheme: ThemeApp.oscuro(),
           themeMode: value == 0 ? ThemeMode.dark : ThemeMode.light,
-          home: const InicioPage(),
+          initialRoute: '/',
           routes: {
-  '/producto': (context) => const DetalleProductoScreen(),
-  '/producto/form': (context) => const AddProductoScreen(),
-  '/compra': (context) => const AddCompraScreen(),
-  '/categorias': (context) => const CategoriasPage(),
-  '/tiendas': (context) => const TiendasPage(),
-},
-          // Rutas que todavía no existen (carrito, compra, calendario...)
+            '/': (context) => const HomeScreen(),
+            '/carrito': (context) => const CarritoScreen(),
+            '/productos': (context) => const ProductosScreen(),
+            '/producto': (context) => const DetalleProductoScreen(),
+            '/producto/form': (context) => const AddProductoScreen(),
+            '/compra': (context) => const AddCompraScreen(),
+            '/categorias': (context) => const CategoriasPage(),
+            '/tiendas': (context) => const TiendasPage(),
+          },
+          // Rutas que todavía no existen (calendario, caducan, gastos)
           onUnknownRoute: (settings) => MaterialPageRoute(
             settings: settings,
             builder: (context) => EnConstruccion(ruta: settings.name ?? ''),
           ),
         );
       },
-    );
-  }
-}
-
-class InicioPage extends StatefulWidget {
-  const InicioPage({super.key});
-
-  @override
-  State<InicioPage> createState() => _InicioPageState();
-}
-
-class _InicioPageState extends State<InicioPage> {
-  int _indice = 0;
-
-  // Sin IndexedStack: cada pestaña se vuelve a construir al entrar,
-  // así siempre muestra los datos actualizados.
-  Widget _pagina() {
-    switch (_indice) {
-      case 1:
-        return const CategoriasPage();
-      case 2:
-        return const TiendasPage();
-      default:
-        return const ProductosScreen();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pagina(),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _indice,
-        onDestinationSelected: (i) => setState(() => _indice = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            label: 'Productos',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.category_outlined),
-            label: 'Categorías',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.storefront_outlined),
-            label: 'Tiendas',
-          ),
-        ],
-      ),
     );
   }
 }
