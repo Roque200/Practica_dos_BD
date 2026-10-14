@@ -1,3 +1,4 @@
+import 'package:alacena/components/notificaciones.dart';
 import 'package:alacena/database/alacena_db.dart';
 import 'package:alacena/database/compra_dao.dart';
 import 'package:flutter/material.dart';
@@ -6,8 +7,11 @@ import 'package:intl/intl.dart';
 /// Registro de una compra: producto, tienda, cantidad, precio y caducidad.
 ///
 /// Se abre desde el menu o desde el carrito ("Ya lo compre"). Desde el
-/// carrito se pasa el id del producto para que llegue preseleccionado:
-///   Navigator.pushNamed(context, '/add_compra', arguments: idProducto);
+/// carrito o el detalle del producto se pasa el id del producto para que
+/// llegue preseleccionado. Acepta dos formas:
+///   Navigator.pushNamed(context, '/compra', arguments: idProducto);
+///   Navigator.pushNamed(context, '/compra',
+///       arguments: {'idProducto': id, 'cantidad': 3});
 ///
 /// Al guardar usa AlacenaDB.registrarCompra(), que en una transaccion inserta
 /// la compra y su lote; el trigger actualiza producto.ultima_tienda_id.
@@ -54,7 +58,14 @@ class _AddCompraScreenState extends State<AddCompraScreen> {
     if (!_argumentoLeido) {
       _argumentoLeido = true;
       final arg = ModalRoute.of(context)?.settings.arguments;
-      if (arg is int) _idProducto = arg;
+      if (arg is int) {
+        _idProducto = arg;
+      } else if (arg is Map) {
+        // Desde el carrito llega también la cantidad que se iba a comprar
+        _idProducto = arg['idProducto'] as int?;
+        final cantidad = arg['cantidad'] as int?;
+        if (cantidad != null) _conCantidad.text = '$cantidad';
+      }
     }
   }
 
@@ -108,8 +119,13 @@ class _AddCompraScreenState extends State<AddCompraScreen> {
     setState(() {
       _errorProducto = _idProducto == null ? 'Selecciona un producto' : null;
       _errorTienda = _idTienda == null ? 'Selecciona una tienda' : null;
-      _errorCaducidad =
-          _fechaCaducidad == null ? 'Elige la fecha de caducidad' : null;
+      if (_fechaCaducidad == null) {
+        _errorCaducidad = 'Elige la fecha de caducidad';
+      } else if (_fechaCaducidad!.isBefore(DateUtils.dateOnly(_fechaCompra))) {
+        _errorCaducidad = 'No puede ser anterior a la fecha de compra';
+      } else {
+        _errorCaducidad = null;
+      }
     });
     return _errorProducto == null &&
         _errorTienda == null &&
@@ -134,6 +150,9 @@ class _AddCompraScreenState extends State<AddCompraScreen> {
 
       // Ya se compro: sale del carrito (tambien actualiza el badge).
       await _db.quitarDelCarrito(_idProducto!);
+
+      // El nuevo lote puede tener alarma de caducidad
+      await Notificaciones.reprogramar();
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

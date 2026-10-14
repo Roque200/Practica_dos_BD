@@ -6,16 +6,17 @@ import 'package:alacena/pages/categorias_page.dart';
 import 'package:alacena/pages/tiendas_page.dart';
 import 'package:alacena/screens/add_compra_screen.dart';
 import 'package:alacena/screens/add_producto_screen.dart';
+import 'package:alacena/screens/caducan_hoy_screen.dart';
+import 'package:alacena/screens/calendario_screen.dart';
 import 'package:alacena/screens/carrito_screen.dart';
 import 'package:alacena/screens/detalle_producto_screen.dart';
 import 'package:alacena/screens/home_screen.dart';
-import 'package:alacena/screens/calendario_screen.dart';
 import 'package:alacena/screens/productos_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-// main.dart PROVISIONAL: faltan las rutas de calendario, caducan hoy y
-// gastos. Mientras, esas opciones del menú abren "En construcción".
+// main.dart PROVISIONAL: falta la ruta de gastos (funcionalidad extra).
+// Mientras, esa opción del menú abre "En construcción".
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es_MX');
@@ -36,6 +37,7 @@ class _AlacenaAppState extends State<AlacenaApp> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await AlacenaDB().refrescarContadorCarrito();
+      // Si la app se abrió tocando una alarma, abre "Caducan hoy"
       await Notificaciones.revisarLanzamiento();
       await Notificaciones.reprogramar();
     });
@@ -61,11 +63,12 @@ class _AlacenaAppState extends State<AlacenaApp> {
             '/producto': (context) => const DetalleProductoScreen(),
             '/producto/form': (context) => const AddProductoScreen(),
             '/calendario': (context) => const CalendarioScreen(),
+            '/caducan': (context) => const CaducanHoyScreen(),
             '/compra': (context) => const AddCompraScreen(),
             '/categorias': (context) => const CategoriasPage(),
             '/tiendas': (context) => const TiendasPage(),
           },
-          // Rutas que todavía no existen (calendario, caducan, gastos)
+          // Rutas que todavía no existen (gastos)
           onUnknownRoute: (settings) => MaterialPageRoute(
             settings: settings,
             builder: (context) => EnConstruccion(ruta: settings.name ?? ''),
