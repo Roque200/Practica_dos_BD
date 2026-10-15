@@ -12,6 +12,7 @@ import 'package:alacena/screens/carrito_screen.dart';
 import 'package:alacena/screens/detalle_producto_screen.dart';
 import 'package:alacena/screens/home_screen.dart';
 import 'package:alacena/screens/productos_screen.dart';
+import 'package:alacena/screens/gastos_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -67,6 +68,7 @@ class _AlacenaAppState extends State<AlacenaApp> {
             '/compra': (context) => const AddCompraScreen(),
             '/categorias': (context) => const CategoriasPage(),
             '/tiendas': (context) => const TiendasPage(),
+            'gastos': (context) => const GastosScreen(),
           },
           // Rutas que todavía no existen (gastos)
           onUnknownRoute: (settings) => MaterialPageRoute(
