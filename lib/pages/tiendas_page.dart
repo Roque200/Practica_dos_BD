@@ -15,7 +15,10 @@ class _TiendasPageState extends State<TiendasPage> {
   final _db = AlacenaDB();
   late Future<List<TiendaDAO>> _futuro = _db.tiendas();
 
-  void _recargar() => setState(() => _futuro = _db.tiendas());
+  void _recargar() {
+    if (!mounted) return;
+    setState(() => _futuro = _db.tiendas());
+  }
 
   String _error(Object e) => mensajeErrorBD(e, entidad: 'una tienda');
 
@@ -57,6 +60,7 @@ class _TiendasPageState extends State<TiendasPage> {
       );
       return;
     }
+    if (!mounted) return;
     final acepta = await confirmarEliminar(
       context,
       titulo: 'Eliminar tienda',
@@ -76,7 +80,6 @@ class _TiendasPageState extends State<TiendasPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tiendas')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _abrirFormulario(),
         icon: const Icon(Icons.add),
@@ -85,50 +88,82 @@ class _TiendasPageState extends State<TiendasPage> {
       body: FutureBuilder<List<TiendaDAO>>(
         future: _futuro,
         builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snap.hasError) {
-            return Center(child: Text(_error(snap.error!)));
-          }
-          final items = snap.data!;
-          if (items.isEmpty) {
-            return const Center(
-                child: Text('Aún no hay tiendas. Agrega la primera.'));
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.only(bottom: 88),
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, i) {
-              final t = items[i];
-              final n = t.totalCompras;
-              return ListTile(
-                title: Text(t.nombre),
-                subtitle: Text([
-                  if (t.direccion != null) t.direccion!,
-                  '$n ${n == 1 ? 'compra' : 'compras'}',
-                ].join('\n')),
-                isThreeLine: t.direccion != null,
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Editar',
-                      icon: const Icon(Icons.edit_outlined),
-                      onPressed: () => _abrirFormulario(t),
-                    ),
-                    IconButton(
-                      tooltip: 'Eliminar',
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => _eliminar(t),
-                    ),
-                  ],
-                ),
-              );
-            },
+          return CustomScrollView(
+            slivers: [
+              const SliverAppBar(
+                pinned: true,
+                title: Text('Tiendas'),
+              ),
+              ..._contenido(snap),
+            ],
           );
         },
+      ),
+    );
+  }
+
+  List<Widget> _contenido(AsyncSnapshot<List<TiendaDAO>> snap) {
+    if (snap.hasError) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(child: Text(_error(snap.error!))),
+        ),
+      ];
+    }
+    if (!snap.hasData) {
+      return const [
+        SliverFillRemaining(
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ];
+    }
+    final items = snap.data!;
+    if (items.isEmpty) {
+      return const [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Text('Aún no hay tiendas. Agrega la primera.'),
+          ),
+        ),
+      ];
+    }
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.only(bottom: 88),
+        sliver: SliverList.separated(
+          itemCount: items.length,
+          separatorBuilder: (_, _) => const Divider(height: 1),
+          itemBuilder: (context, i) => _item(items[i]),
+        ),
+      ),
+    ];
+  }
+
+  Widget _item(TiendaDAO t) {
+    final n = t.totalCompras;
+    return ListTile(
+      title: Text(t.nombre),
+      subtitle: Text([
+        if (t.direccion != null) t.direccion!,
+        '$n ${n == 1 ? 'compra' : 'compras'}',
+      ].join('\n')),
+      isThreeLine: t.direccion != null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: 'Editar',
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _abrirFormulario(t),
+          ),
+          IconButton(
+            tooltip: 'Eliminar',
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _eliminar(t),
+          ),
+        ],
       ),
     );
   }
